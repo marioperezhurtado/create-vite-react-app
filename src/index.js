@@ -3,7 +3,7 @@ import { execSync } from 'child_process' // execute commands
 import inquirer from 'inquirer' // prompt user
 import { addDependencies } from './utils/addDependencies.js'
 
-import { TAILWIND, SASS } from './utils/packages.js'
+import { TAILWIND, SASS, ESLINT_JS, ESLINT_TS } from './utils/packages.js'
 import {
   TITLE,
   DEFAULT_APP_NAME,
@@ -56,21 +56,38 @@ const promptGit = async () => {
   const { git } = await inquirer.prompt({
     name: 'git',
     type: 'confirm',
-    message: 'Would you like to initialize a git repository? ',
+    message: 'Initialize a new git repository? ',
     default: true
   })
   return git
 }
 
-// Prompt user for project options
-console.log(TITLE)
-const appName = await promptAppName()
-const language = await promptLanguage()
-const style = await promptStyle()
-const git = await promptGit()
+const promptInstall = async () => {
+  const { install } = await inquirer.prompt({
+    name: 'install',
+    type: 'confirm',
+    message: 'Install dependencies? ',
+    default: true
+  })
+  return install
+}
 
+let appName = DEFAULT_APP_NAME
+let language = DEFAULT_LANGUAGE
+let style = DEFAULT_STYLE
+let git = true
+let install = true
 let dependencies = {}
 let devDependencies = {}
+
+// Prompt user for project options
+const promptUser = async () => {
+  appName = await promptAppName()
+  language = await promptLanguage()
+  style = await promptStyle()
+  git = await promptGit()
+  install = await promptInstall()
+}
 
 const createApp = async () => {
   if (language === 'typescript') {
@@ -106,8 +123,16 @@ const setupStyle = async () => {
 
 const setupESLint = async () => {
   if (language === 'typescript') {
+    devDependencies = {
+      ...devDependencies,
+      ...ESLINT_TS
+    }
     fs.copySync(`${cwd}/src/config/ts/.eslintrc.cjs`, './.eslintrc.cjs')
     return
+  }
+  devDependencies = {
+    ...devDependencies,
+    ...ESLINT_JS
   }
   fs.copySync(`${cwd}/src/config/.eslintrc.cjs`, './.eslintrc.cjs')
 }
@@ -118,13 +143,27 @@ const initGit = async () => {
 }
 
 const installDependencies = async () => {
+  if (!install) return
   await execSync('npm install')
 }
 
 // Setting up the project
-await createApp()
-await setupStyle()
-await setupESLint()
-await initGit()
-await addDependencies(dependencies, devDependencies)
-await installDependencies()
+const setUp = async () => {
+  await createApp()
+  await setupStyle()
+  await setupESLint()
+  await initGit()
+  await addDependencies(dependencies, devDependencies)
+  await installDependencies()
+}
+
+// Start
+console.log(TITLE)
+await promptUser()
+await setUp()
+console.log(`Your project "${appName}" is ready!`)
+console.log('To get started:')
+console.log("Run 'cd' to move to your project directory.")
+if (!install) console.log("Run 'npm install' to install dependencies.")
+console.log("Run 'npm run dev' to start the development server.")
+console.log('Happy hacking! 🎉🎉🎉')
