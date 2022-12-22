@@ -1,6 +1,10 @@
+import inquirer from 'inquirer' // prompt user
 import fs from 'fs-extra' // copy config files
 import { execSync } from 'child_process' // execute commands
-import inquirer from 'inquirer' // prompt user
+import figlet from 'figlet' // title
+import gradient from 'gradient-string'
+import { createSpinner } from 'nanospinner' // loading spinner
+
 import { addDependencies } from './utils/addDependencies.js'
 
 import { TAILWIND, SASS, ESLINT_JS, ESLINT_TS } from './utils/packages.js'
@@ -12,6 +16,11 @@ import {
 } from './utils/defaults.js'
 
 const cwd = process.cwd() // current working directory
+
+const greet = async () => {
+  const greeting = figlet.textSync(TITLE, { font: 'Slant' })
+  console.log(gradient.pastel.multiline(greeting))
+}
 
 const promptAppName = async () => {
   const { appName } = await inquirer.prompt({
@@ -149,21 +158,50 @@ const installDependencies = async () => {
 
 // Setting up the project
 const setUp = async () => {
+  const s1 = createSpinner('Creating project...').spin()
   await createApp()
+  s1.success('Project created!')
+  const s2 = createSpinner('Setting up style...').start()
   await setupStyle()
+  s2.success('Your styles have been set up!')
+  const s3 = createSpinner('Setting up ESLint...').start()
   await setupESLint()
+  s3.success('ESLint has been set up!')
+  const s4 = createSpinner('Initalizing git...').start()
   await initGit()
+  s4.success('Your git repository has been initialized!')
   await addDependencies(dependencies, devDependencies)
+  const s5 = createSpinner('Installing dependencies...').spin()
   await installDependencies()
+  s5.success('Your dependencies have been installed!')
 }
 
 // Start
-console.log(TITLE)
+await greet()
 await promptUser()
 await setUp()
-console.log(`Your project "${appName}" is ready!`)
-console.log('To get started:')
-console.log("Run 'cd' to move to your project directory.")
-if (!install) console.log("Run 'npm install' to install dependencies.")
-console.log("Run 'npm run dev' to start the development server.")
-console.log('Happy hacking! 🎉🎉🎉')
+
+if (install) {
+  console.log(`
+  Your project "${appName}" is ready!
+
+  To get started:
+    Run 'cd' to move to your project directory.
+    Run 'npm run dev' to start the development server.
+
+  Happy hacking! 🎉🎉🎉
+`)
+} else {
+  console.log(`
+  Your project "${appName}" is ready!
+
+  To get started:
+    Run 'cd' to move to your project directory.
+    Run 'npm install' to install dependencies.
+    Run 'npm run dev' to start the development server.
+
+  Note: Your project is not fully setup yet. You will need to install dependencies before you can run the development server.
+
+  Happy hacking! 🎉🎉🎉
+`)
+}
