@@ -1,17 +1,17 @@
 import fs from 'fs-extra' // copy config files
-import { exec } from 'child_process' // execute commands
-import { promisify } from 'util' // promisify exec
+import { execSync } from 'child_process' // execute commands
 import inquirer from 'inquirer' // prompt user
+import { addDependencies } from './utils/addDependencies.js'
 
+import { TAILWIND, SASS } from './utils/packages.js'
 import {
   TITLE,
   DEFAULT_APP_NAME,
   DEFAULT_LANGUAGE,
   DEFAULT_STYLE
-} from './defaults.js'
+} from './utils/defaults.js'
 
 const cwd = process.cwd() // current working directory
-const execPromise = promisify(exec)
 
 const promptAppName = async () => {
   const { appName } = await inquirer.prompt({
@@ -69,39 +69,62 @@ const language = await promptLanguage()
 const style = await promptStyle()
 const git = await promptGit()
 
+let dependencies = {}
+let devDependencies = {}
+
 const createApp = async () => {
   if (language === 'typescript') {
-    await execPromise(
-      `npm create vite@latest ${appName} -- --template react-ts`
-    )
+    await execSync(`npm create vite@latest ${appName} -- --template react-ts`)
   } else {
-    await execPromise(`npm create vite@latest ${appName} -- --template react`)
+    await execSync(`npm create vite@latest ${appName} -- --template react`)
   }
   // move to created app
   process.chdir(`${cwd}/${appName}`)
 }
 
-const installStyle = async () => {
+const setupStyle = async () => {
   if (style === 'tailwind') {
-    await execPromise(
-      `npm install -D tailwindcss@latest postcss@latest autoprefixer@latest`
+    devDependencies = {
+      ...devDependencies,
+      ...TAILWIND
+    }
+    fs.copySync(
+      `${cwd}/src/config/tailwind.config.cjs`,
+      './tailwind.config.cjs'
     )
-    await execPromise(`npx tailwindcss init -p`)
-    fs.copySync(`${cwd}/tailwind.config.cjs`, './tailwind.config.cjs')
+    fs.copySync(`${cwd}/src/config/postcss.config.cjs`, './postcss.config.cjs')
+    fs.copySync(`${cwd}/src/config/index.css`, './src/index.css')
     return
   }
   if (style === 'scss') {
-    await execPromise(`npm install sass`)
+    dependencies = {
+      ...dependencies,
+      ...SASS
+    }
+  }
+}
+
+const setupESLint = async () => {
+  if (language === 'typescript') {
+    fs.copySync(`${cwd}/src/config/ts/.eslintrc.cjs`, './.eslintrc.cjs')
     return
   }
+  fs.copySync(`${cwd}/src/config/.eslintrc.cjs`, './.eslintrc.cjs')
 }
 
 const initGit = async () => {
   if (!git) return
-  await execPromise(`git init`)
+  await execSync('git init')
+}
+
+const installDependencies = async () => {
+  await execSync('npm install')
 }
 
 // Setting up the project
 await createApp()
-await installStyle()
+await setupStyle()
+await setupESLint()
 await initGit()
+await addDependencies(dependencies, devDependencies)
+await installDependencies()

@@ -10,4 +10,4 @@ export const TITLE = `
 `
 export const DEFAULT_APP_NAME = 'my-vite-react-app'
 export const DEFAULT_LANGUAGE = 'typescript'
-export const DEFAULT_STYLE = 'css'
+export const DEFAULT_STYLE = 'tailwind'
