@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import inquirer from 'inquirer' // prompt user
 import fs from 'fs-extra' // copy config files
 import { execSync } from 'child_process' // execute commands
@@ -9,12 +11,14 @@ import { addDependencies } from './utils/addDependencies.js'
 
 import { TAILWIND, SASS, ESLINT_JS, ESLINT_TS } from './utils/packages.js'
 import {
+  PKG_ROOT,
   TITLE,
   DEFAULT_APP_NAME,
   DEFAULT_LANGUAGE,
   DEFAULT_STYLE
 } from './utils/defaults.js'
 
+console.log(PKG_ROOT)
 const cwd = process.cwd() // current working directory
 
 const greet = async () => {
@@ -115,11 +119,11 @@ const setupStyle = async () => {
       ...TAILWIND
     }
     fs.copySync(
-      `${cwd}/src/config/tailwind.config.cjs`,
+      `${PKG_ROOT}/config/tailwind.config.cjs`,
       './tailwind.config.cjs'
     )
-    fs.copySync(`${cwd}/src/config/postcss.config.cjs`, './postcss.config.cjs')
-    fs.copySync(`${cwd}/src/config/index.css`, './src/index.css')
+    fs.copySync(`${PKG_ROOT}/config/postcss.config.cjs`, './postcss.config.cjs')
+    fs.copySync(`${PKG_ROOT}/config/index.css`, './src/index.css')
     return
   }
   if (style === 'scss') {
@@ -136,14 +140,14 @@ const setupESLint = async () => {
       ...devDependencies,
       ...ESLINT_TS
     }
-    fs.copySync(`${cwd}/src/config/ts/.eslintrc.cjs`, './.eslintrc.cjs')
+    fs.copySync(`${PKG_ROOT}/config/ts/.eslintrc.cjs`, './.eslintrc.cjs')
     return
   }
   devDependencies = {
     ...devDependencies,
     ...ESLINT_JS
   }
-  fs.copySync(`${cwd}/src/config/.eslintrc.cjs`, './.eslintrc.cjs')
+  fs.copySync(`${PKG_ROOT}/config/.eslintrc.cjs`, './.eslintrc.cjs')
 }
 
 const initGit = async () => {
