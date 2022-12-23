@@ -9,13 +9,23 @@ import { createSpinner } from 'nanospinner' // loading spinner
 
 import { addDependencies } from './utils/addDependencies.js'
 
-import { TAILWIND, SASS, ESLINT_JS, ESLINT_TS } from './utils/packages.js'
+import {
+  TAILWIND,
+  SASS,
+  ESLINT_JS,
+  ESLINT_TS,
+  VITEST,
+  VITEST_SCRIPTS
+} from './utils/packages.js'
 import {
   PKG_ROOT,
   TITLE,
   DEFAULT_APP_NAME,
   DEFAULT_LANGUAGE,
-  DEFAULT_STYLE
+  DEFAULT_STYLE,
+  DEFAULT_TESTING,
+  DEFAULT_GIT,
+  DEFAULT_INSTALL
 } from './utils/defaults.js'
 
 console.log(PKG_ROOT)
@@ -65,6 +75,20 @@ const promptStyle = async () => {
   return style
 }
 
+const promptTesting = async () => {
+  const { testing } = await inquirer.prompt({
+    name: 'testing',
+    type: 'list',
+    message: 'How will you test your project? ',
+    choices: [
+      { name: 'Vitest', value: 'vitest' },
+      { name: 'None', value: false }
+    ],
+    default: DEFAULT_STYLE
+  })
+  return testing
+}
+
 const promptGit = async () => {
   const { git } = await inquirer.prompt({
     name: 'git',
@@ -88,16 +112,19 @@ const promptInstall = async () => {
 let appName = DEFAULT_APP_NAME
 let language = DEFAULT_LANGUAGE
 let style = DEFAULT_STYLE
-let git = true
-let install = true
+let testing = DEFAULT_TESTING
+let git = DEFAULT_GIT
+let install = DEFAULT_INSTALL
 let dependencies = {}
 let devDependencies = {}
+let scripts = {}
 
 // Prompt user for project options
 const promptUser = async () => {
   appName = await promptAppName()
   language = await promptLanguage()
   style = await promptStyle()
+  testing = await promptTesting()
   git = await promptGit()
   install = await promptInstall()
 }
@@ -119,11 +146,14 @@ const setupStyle = async () => {
       ...TAILWIND
     }
     fs.copySync(
-      `${PKG_ROOT}/config/tailwind.config.cjs`,
+      `${PKG_ROOT}/config/tailwind/tailwind.config.cjs`,
       './tailwind.config.cjs'
     )
-    fs.copySync(`${PKG_ROOT}/config/postcss.config.cjs`, './postcss.config.cjs')
-    fs.copySync(`${PKG_ROOT}/config/index.css`, './src/index.css')
+    fs.copySync(
+      `${PKG_ROOT}/config/tailwind/postcss.config.cjs`,
+      './postcss.config.cjs'
+    )
+    fs.copySync(`${PKG_ROOT}/config/tailwind/index.css`, './src/index.css')
     return
   }
   if (style === 'scss') {
@@ -134,20 +164,42 @@ const setupStyle = async () => {
   }
 }
 
+const setupTesting = async () => {
+  if (!testing) return
+  if (testing === 'vitest') {
+    devDependencies = {
+      ...devDependencies,
+      ...VITEST
+    }
+    scripts = {
+      ...scripts,
+      ...VITEST_SCRIPTS
+    }
+    if (language === 'typescript') {
+      fs.copySync(
+        `${PKG_ROOT}/config/vitest/vite.config.ts`,
+        './vite.config.ts'
+      )
+      return
+    }
+    fs.copySync(`${PKG_ROOT}/config/vitest/vite.config.js`, './vite.config.js')
+  }
+}
+
 const setupESLint = async () => {
   if (language === 'typescript') {
     devDependencies = {
       ...devDependencies,
       ...ESLINT_TS
     }
-    fs.copySync(`${PKG_ROOT}/config/ts/.eslintrc.cjs`, './.eslintrc.cjs')
+    fs.copySync(`${PKG_ROOT}/config/eslint/ts/.eslintrc.cjs`, './.eslintrc.cjs')
     return
   }
   devDependencies = {
     ...devDependencies,
     ...ESLINT_JS
   }
-  fs.copySync(`${PKG_ROOT}/config/.eslintrc.cjs`, './.eslintrc.cjs')
+  fs.copySync(`${PKG_ROOT}/config/eslint/.eslintrc.cjs`, './.eslintrc.cjs')
 }
 
 const initGit = async () => {
@@ -162,22 +214,25 @@ const installDependencies = async () => {
 
 // Setting up the project
 const setUp = async () => {
-  const s1 = createSpinner('Creating project...').spin()
+  const sCreate = createSpinner('Creating project...').spin()
   await createApp()
-  s1.success('Project created!')
-  const s2 = createSpinner('Setting up style...').start()
+  sCreate.success('Project created!')
+  const sStyle = createSpinner('Setting up style...').start()
   await setupStyle()
-  s2.success('Your styles have been set up!')
-  const s3 = createSpinner('Setting up ESLint...').start()
+  sStyle.success('Your styles have been set up!')
+  const sTesting = createSpinner('Setting up testing...').start()
+  await setupTesting()
+  sTesting.success('Testing has been set up!')
+  const sESLint = createSpinner('Setting up ESLint...').start()
   await setupESLint()
-  s3.success('ESLint has been set up!')
-  const s4 = createSpinner('Initalizing git...').start()
+  sESLint.success('ESLint has been set up!')
+  const sGit = createSpinner('Initalizing git...').start()
   await initGit()
-  s4.success('Your git repository has been initialized!')
-  await addDependencies(dependencies, devDependencies)
-  const s5 = createSpinner('Installing dependencies...').spin()
+  sGit.success('Your git repository has been initialized!')
+  await addDependencies(dependencies, devDependencies, scripts)
+  const sDep = createSpinner('Installing dependencies...').spin()
   await installDependencies()
-  s5.success('Your dependencies have been installed!')
+  sDep.success('Your dependencies have been installed!')
 }
 
 // Start
@@ -190,7 +245,7 @@ if (install) {
   Your project "${appName}" is ready!
 
   To get started:
-    Run 'cd' to move to your project directory.
+    Run 'cd ${appName}' to move to your project directory.
     Run 'npm run dev' to start the development server.
 
   Happy hacking! 🎉🎉🎉
@@ -200,7 +255,7 @@ if (install) {
   Your project "${appName}" is ready!
 
   To get started:
-    Run 'cd' to move to your project directory.
+    Run 'cd ${appName}' to move to your project directory.
     Run 'npm install' to install dependencies.
     Run 'npm run dev' to start the development server.
 

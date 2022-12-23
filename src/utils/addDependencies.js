@@ -1,6 +1,10 @@
 import fs from 'fs'
 
-export const addDependencies = async (dependencies, devDependencies) => {
+export const addDependencies = async (
+  dependencies,
+  devDependencies,
+  scripts
+) => {
   const res = await fs.readFileSync('./package.json')
   const packageJson = await JSON.parse(res)
 
@@ -13,6 +17,10 @@ export const addDependencies = async (dependencies, devDependencies) => {
     devDependencies: {
       ...packageJson.devDependencies,
       ...devDependencies
+    },
+    scripts: {
+      ...packageJson.scripts,
+      ...scripts
     }
   }
 

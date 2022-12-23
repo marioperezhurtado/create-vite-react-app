@@ -21,3 +21,13 @@ export const ESLINT_TS = {
   'eslint-config-standard-with-typescript': '^24.0.0',
   '@typescript-eslint/eslint-plugin': '^5.47.0'
 }
+export const VITEST = {
+  vitest: '^0.26.2',
+  jsdom: '^20.0.3',
+  '@testing-library/react': '^13.4.0',
+  '@vitest/coverage-c8': '^0.26.2'
+}
+export const VITEST_SCRIPTS = {
+  test: 'vitest',
+  coverage: 'vitest --coverage'
+}
