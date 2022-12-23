@@ -7,10 +7,16 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "cli",
+    "vite",
+    "react"
+  ],
+  "author": "Mario Pérez Hurtado",
+  "description": "Interactive CLI to easily start a React + Vite project and setup optional tools",
+  "repository": "https://github.com/marioperezhurtado/create-vite-react-app",
+  "homepage": "https://github.com/marioperezhurtado/create-vite-react-app#readme",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "figlet": "^1.5.2",
     "fs-extra": "^11.1.0",
