@@ -28,7 +28,6 @@ import {
   DEFAULT_INSTALL
 } from './utils/defaults.js'
 
-console.log(PKG_ROOT)
 const cwd = process.cwd() // current working directory
 
 const greet = async () => {
