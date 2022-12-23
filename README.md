@@ -1,5 +1,10 @@
 # Create Vite React App
+
 Interactive CLI to easily start a **React + Vite** project and setup optional tools
+
+``
+npx create-vite-react-app
+``
 
 ![CLI Demo](./doc/cli-demo.png)
 
