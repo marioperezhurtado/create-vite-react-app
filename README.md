@@ -14,6 +14,8 @@ npx create-vite-react-app
 
 **Create CLI prompts:** [inquirer](https://github.com/SBoudrias/Inquirer.js)
 
+**Copy files:** [fs-extra](https://github.com/jprichardson/node-fs-extra)
+
 **Generate ASCII title:** [figlet](https://github.com/patorjk/figlet.js)
 
 **Print color gradient:** [gradient-string](https://github.com/bokub/gradient-string)
