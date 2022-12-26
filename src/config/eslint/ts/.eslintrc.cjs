@@ -8,9 +8,13 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module'
+    // project: './your-project/tsconfig.json'
   },
   plugins: ['react'],
   rules: {
-    'space-before-function-paren': 'off'
-  }
+    'react/react-in-jsx-scope': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/space-before-function-paren': 'off'
+  },
+  root: true
 }
